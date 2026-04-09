@@ -227,6 +227,7 @@
   ],
 
   "defaultDefaultClientScopes": [
+    "openid",
     "role_list",
     "profile",
     "email",
@@ -267,18 +268,7 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "+",
         "access.token.lifespan": "300"
-      },
-      "defaultClientScopes": [
-        "web-origins",
-        "profile",
-        "roles",
-        "email",
-        "lumini-groups"
-      ],
-      "optionalClientScopes": [
-        "offline_access",
-        "microprofile-jwt"
-      ]
+      }
     },
     {
       "id": "55555555-0000-0000-0000-000000000002",
@@ -305,18 +295,7 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "+",
         "access.token.lifespan": "300"
-      },
-      "defaultClientScopes": [
-        "web-origins",
-        "profile",
-        "roles",
-        "email",
-        "lumini-groups"
-      ],
-      "optionalClientScopes": [
-        "offline_access",
-        "microprofile-jwt"
-      ]
+      }
     },
     {
       "id": "55555555-0000-0000-0000-000000000003",
@@ -343,18 +322,7 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "+",
         "access.token.lifespan": "300"
-      },
-      "defaultClientScopes": [
-        "web-origins",
-        "profile",
-        "roles",
-        "email",
-        "lumini-groups"
-      ],
-      "optionalClientScopes": [
-        "offline_access",
-        "microprofile-jwt"
-      ]
+      }
     },
     {
       "id": "55555555-0000-0000-0000-000000000004",
@@ -381,18 +349,7 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "+",
         "access.token.lifespan": "300"
-      },
-      "defaultClientScopes": [
-        "web-origins",
-        "profile",
-        "roles",
-        "email",
-        "lumini-groups"
-      ],
-      "optionalClientScopes": [
-        "offline_access",
-        "microprofile-jwt"
-      ]
+      }
     }
   ]
 }
