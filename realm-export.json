@@ -1,0 +1,398 @@
+{
+  "id": "lumini",
+  "realm": "lumini",
+  "displayName": "Lumini",
+  "enabled": true,
+  "sslRequired": "none",
+
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "verifyEmail": false,
+
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+
+  "bruteForceProtected": true,
+  "permanentLockout": true,
+  "failureFactor": 30,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "minimumQuickLoginWaitSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+
+  "passwordPolicy": "length(10) and digits(1) and upperCase(1) and notUsername and passwordHistory(5)",
+
+  "roles": {
+    "realm": [
+      {
+        "id": "11111111-0000-0000-0000-000000000001",
+        "name": "SUPER_ADMIN",
+        "description": "Cross-realm administrator. Maps from planner SUPER_ADMIN.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "11111111-0000-0000-0000-000000000002",
+        "name": "ADMIN",
+        "description": "Application administrator. Maps from planner ADMINISTRADOR, op Administrador, crm admin, hermetica Full Access.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "11111111-0000-0000-0000-000000000003",
+        "name": "SUPERVISOR",
+        "description": "Operational supervisor. Maps from planner SUPERVISOR.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "11111111-0000-0000-0000-000000000004",
+        "name": "USER",
+        "description": "Standard authenticated user. Maps from op Usuario, crm usuario, hermetica Read Only.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "11111111-0000-0000-0000-000000000005",
+        "name": "DEVELOPER",
+        "description": "Developer / technical user. Maps from planner DESARROLLADOR, op Desarrollador.",
+        "composite": false,
+        "clientRole": false
+      }
+    ],
+    "client": {
+      "hermetica-web": [
+        {
+          "id": "22222222-0000-0000-0000-000000000001",
+          "name": "commercial_full_access",
+          "description": "Maps from hermetica Group `Commercial Full Access`. Full access except hard-blocked dispatch writes.",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000002",
+          "name": "module_dispatch",
+          "description": "Maps from hermetica Group `Dispatch Only`. Module-prefix gate: dispatch.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000003",
+          "name": "module_calendar",
+          "description": "Maps from hermetica Group `Calendar Only`. Module-prefix gate: calendarapp.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000004",
+          "name": "module_dashboard",
+          "description": "Maps from hermetica Group `Dashboard Only`. Module-prefix gate: dashboard.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000005",
+          "name": "module_commercial",
+          "description": "Maps from hermetica Group `Commercial Only`. Module-prefix gate: commercial.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000006",
+          "name": "module_inventory",
+          "description": "Maps from hermetica Group `Inventory Only`. Module-prefix gate: inventory.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000007",
+          "name": "module_imports",
+          "description": "Maps from hermetica Group `Imports Only`. Module-prefix gate: importsapp.*",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "id": "22222222-0000-0000-0000-000000000008",
+          "name": "module_mrp",
+          "description": "Maps from hermetica Group `MRP Only`. Module-prefix gate: mrp.*",
+          "composite": false,
+          "clientRole": true
+        }
+      ]
+    }
+  },
+
+  "groups": [
+    {
+      "id": "33333333-0000-0000-0000-000000000001",
+      "name": "PE",
+      "path": "/PE",
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": [
+        {
+          "id": "33333333-0000-0000-0000-000000000010",
+          "name": "Friopacking",
+          "path": "/PE/Friopacking",
+          "realmRoles": [],
+          "clientRoles": {},
+          "subGroups": [
+            {
+              "id": "33333333-0000-0000-0000-000000000011",
+              "name": "PlannerLima",
+              "path": "/PE/Friopacking/PlannerLima",
+              "realmRoles": ["ADMIN"],
+              "clientRoles": {},
+              "subGroups": []
+            },
+            {
+              "id": "33333333-0000-0000-0000-000000000012",
+              "name": "OpCallao",
+              "path": "/PE/Friopacking/OpCallao",
+              "realmRoles": ["USER"],
+              "clientRoles": {},
+              "subGroups": []
+            },
+            {
+              "id": "33333333-0000-0000-0000-000000000013",
+              "name": "CrmComercial",
+              "path": "/PE/Friopacking/CrmComercial",
+              "realmRoles": ["ADMIN"],
+              "clientRoles": {},
+              "subGroups": []
+            }
+          ]
+        },
+        {
+          "id": "33333333-0000-0000-0000-000000000020",
+          "name": "Hermetica",
+          "path": "/PE/Hermetica",
+          "realmRoles": [],
+          "clientRoles": {},
+          "subGroups": [
+            {
+              "id": "33333333-0000-0000-0000-000000000021",
+              "name": "ComercialPeru",
+              "path": "/PE/Hermetica/ComercialPeru",
+              "realmRoles": ["USER"],
+              "clientRoles": {
+                "hermetica-web": ["commercial_full_access", "module_calendar"]
+              },
+              "subGroups": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "clientScopes": [
+    {
+      "id": "44444444-0000-0000-0000-000000000001",
+      "name": "lumini-groups",
+      "description": "Adds the user's full Keycloak group paths as a `groups` claim on ID, access, and userinfo tokens. Enables PAIS-Empresa-Proyecto scoping in app code.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "id": "44444444-1111-0000-0000-000000000001",
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    }
+  ],
+
+  "defaultDefaultClientScopes": [
+    "role_list",
+    "profile",
+    "email",
+    "roles",
+    "web-origins",
+    "lumini-groups"
+  ],
+  "defaultOptionalClientScopes": [
+    "offline_access",
+    "address",
+    "phone",
+    "microprofile-jwt"
+  ],
+
+  "clients": [
+    {
+      "id": "55555555-0000-0000-0000-000000000001",
+      "clientId": "friopacking-planner-web",
+      "name": "Friopacking Planner (frontend)",
+      "description": "Public OIDC client for the React frontend of Friopacking-planner. PKCE required.",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "https://planner.lumini.dev/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "https://planner.lumini.dev",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email",
+        "lumini-groups"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "id": "55555555-0000-0000-0000-000000000002",
+      "clientId": "friopacking-op-web",
+      "name": "Friopacking Op (frontend)",
+      "description": "Public OIDC client for the React frontend of friopacking-op. PKCE required.",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "https://op.lumini.dev/*",
+        "http://localhost:5174/*"
+      ],
+      "webOrigins": [
+        "https://op.lumini.dev",
+        "http://localhost:5174"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email",
+        "lumini-groups"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "id": "55555555-0000-0000-0000-000000000003",
+      "clientId": "crm-web",
+      "name": "CRM (frontend)",
+      "description": "Public OIDC client for the React frontend of crm. PKCE required.",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "https://crm.lumini.dev/*",
+        "http://localhost:5175/*"
+      ],
+      "webOrigins": [
+        "https://crm.lumini.dev",
+        "http://localhost:5175"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email",
+        "lumini-groups"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "id": "55555555-0000-0000-0000-000000000004",
+      "clientId": "hermetica-web",
+      "name": "Hermetica (frontend)",
+      "description": "Public OIDC client for the React frontend of hermetica. PKCE required. Owns the module_* client roles consumed by GroupBasedPermission.",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "https://hermetica.lumini.dev/*",
+        "http://localhost:5176/*"
+      ],
+      "webOrigins": [
+        "https://hermetica.lumini.dev",
+        "http://localhost:5176"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email",
+        "lumini-groups"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ]
+}
