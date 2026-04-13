@@ -8,15 +8,42 @@
 set -euo pipefail
 
 KC_BASE="http://localhost:8080"
-ADMIN_USER="admin"
-ADMIN_PASS="admin"
+
+# ── Load credentials from .env (same file docker-compose uses) ────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  # shellcheck disable=SC1091
+  set -a
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
+
+ADMIN_USER="${KEYCLOAK_ADMIN_USERNAME:-admin}"
+ADMIN_PASS="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+
+echo "Using Keycloak at $KC_BASE with user=$ADMIN_USER"
 
 # ── Helper ────────────────────────────────────────────────────────────
+PY=$(command -v python3 || command -v python)
+
 get_token() {
-  curl -s -X POST "$KC_BASE/realms/master/protocol/openid-connect/token" \
+  local RESPONSE
+  RESPONSE=$(curl -s -X POST "$KC_BASE/realms/master/protocol/openid-connect/token" \
     -d "client_id=admin-cli" -d "grant_type=password" \
-    -d "username=$ADMIN_USER" -d "password=$ADMIN_PASS" \
-    | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
+    -d "username=$ADMIN_USER" -d "password=$ADMIN_PASS")
+
+  local TOKEN_VAL
+  TOKEN_VAL=$($PY -c "import sys,json; data=json.load(sys.stdin); print(data.get('access_token',''))" <<< "$RESPONSE")
+
+  if [ -z "$TOKEN_VAL" ]; then
+    echo "[ERROR] Failed to get admin token. Keycloak response:" >&2
+    echo "$RESPONSE" >&2
+    echo "" >&2
+    echo "Check that KEYCLOAK_ADMIN_USERNAME and KEYCLOAK_ADMIN_PASSWORD in .env" >&2
+    echo "match the credentials Keycloak was bootstrapped with." >&2
+    exit 1
+  fi
+  echo "$TOKEN_VAL"
 }
 
 TOKEN=$(get_token)
@@ -76,7 +103,7 @@ curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/client-scop
 
 # Get scope UUID
 GROUPS_SCOPE_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/client-scopes" \
-  | python -c "import sys,json; scopes=json.load(sys.stdin); print([s['id'] for s in scopes if s['name']=='lumini-groups'][0])")
+  | $PY -c "import sys,json; scopes=json.load(sys.stdin); print([s['id'] for s in scopes if s['name']=='lumini-groups'][0])")
 echo "    Scope ID: $GROUPS_SCOPE_ID"
 
 # Add group membership mapper to the scope
@@ -148,7 +175,7 @@ create_client "hermetica-web" "Hermetica" \
 echo "==> Assigning lumini-groups scope to clients..."
 for CID_NAME in friopacking-planner-web friopacking-op-web crm-web hermetica-web; do
   CID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=$CID_NAME" \
-    | python -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+    | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
   curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients/$CID/default-client-scopes/$GROUPS_SCOPE_ID"
   echo "    [OK] $CID_NAME"
 done
@@ -156,7 +183,7 @@ done
 # ── 7. Create hermetica client roles ──────────────────────────────────
 echo "==> Creating hermetica-web client roles..."
 HERMETICA_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=hermetica-web" \
-  | python -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+  | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
 
 for ROLE in commercial_full_access module_dispatch module_calendar module_dashboard module_commercial module_inventory module_imports module_mrp; do
   curl -s -f -X POST -H "$AUTH" -H "$CT" \
@@ -172,13 +199,13 @@ echo "==> Creating group tree..."
 curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups" \
   -d '{"name": "PE"}'
 PE_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups" \
-  | python -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='PE'][0])")
+  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='PE'][0])")
 
 # /PE/Friopacking
 curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
   -d '{"name": "Friopacking"}'
 FRIO_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
-  | python -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Friopacking'][0])")
+  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Friopacking'][0])")
 
 # /PE/Friopacking/PlannerLima, OpCallao, CrmComercial
 for GRP in PlannerLima OpCallao CrmComercial; do
@@ -191,7 +218,7 @@ done
 curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
   -d '{"name": "Hermetica"}'
 HERM_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
-  | python -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Hermetica'][0])")
+  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Hermetica'][0])")
 
 # /PE/Hermetica/ComercialPeru
 curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$HERM_ID/children" \
@@ -212,12 +239,12 @@ curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/users" -d '
 
 # Get user UUID
 USER_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/users?email=test@lumini.dev" \
-  | python -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+  | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
 echo "    User UUID: $USER_UUID"
 
 # Assign user to /PE/Friopacking/PlannerLima
 PLANNER_GRP_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$FRIO_ID/children" \
-  | python -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='PlannerLima'][0])")
+  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='PlannerLima'][0])")
 curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/users/$USER_UUID/groups/$PLANNER_GRP_ID"
 echo "    [OK] User added to /PE/Friopacking/PlannerLima"
 
@@ -241,7 +268,7 @@ RESPONSE=$(curl -s -X POST "$KC_BASE/realms/lumini/protocol/openid-connect/token
   -d "username=test@lumini.dev" \
   -d "password=Saitim1234")
 
-ACCESS_TOKEN=$(echo "$RESPONSE" | python -c "import sys,json; print(json.load(sys.stdin).get('access_token','ERROR'))" 2>/dev/null || echo "ERROR")
+ACCESS_TOKEN=$(echo "$RESPONSE" | $PY -c "import sys,json; print(json.load(sys.stdin).get('access_token','ERROR'))" 2>/dev/null || echo "ERROR")
 
 if [ "$ACCESS_TOKEN" = "ERROR" ]; then
   echo "[FAIL] Could not get token:"
@@ -250,7 +277,7 @@ if [ "$ACCESS_TOKEN" = "ERROR" ]; then
 fi
 
 echo "[OK] Token obtained. Decoded payload:"
-echo "$ACCESS_TOKEN" | python -c "
+echo "$ACCESS_TOKEN" | $PY -c "
 import sys, json, base64
 token = sys.stdin.read().strip()
 payload = token.split('.')[1]
