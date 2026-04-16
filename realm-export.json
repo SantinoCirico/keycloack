@@ -350,6 +350,33 @@
         "post.logout.redirect.uris": "+",
         "access.token.lifespan": "300"
       }
+    },
+    {
+      "id": "55555555-0000-0000-0000-000000000005",
+      "clientId": "lumini-audit-dashboard",
+      "name": "Lumini Audit Dashboard",
+      "description": "Public OIDC client for the static audit-log dashboard served by Nginx alongside Keycloak. PKCE required. Restricted by backend to SUPER_ADMIN or DEVELOPER realm roles.",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "http://localhost:8090/*",
+        "https://audit.lumini.dev/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8090",
+        "https://audit.lumini.dev"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "access.token.lifespan": "300"
+      }
     }
   ]
 }
