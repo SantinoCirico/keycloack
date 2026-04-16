@@ -171,9 +171,13 @@ create_client "hermetica-web" "Hermetica" \
   '["https://hermetica.lumini.dev/*","http://localhost:5176/*"]' \
   '["https://hermetica.lumini.dev","http://localhost:5176"]'
 
+create_client "lumini-audit-dashboard" "Lumini Audit Dashboard" \
+  '["http://localhost:8090/*","https://audit.lumini.dev/*"]' \
+  '["http://localhost:8090","https://audit.lumini.dev"]'
+
 # ── 6. Add lumini-groups as default scope to each client ──────────────
 echo "==> Assigning lumini-groups scope to clients..."
-for CID_NAME in friopacking-planner-web friopacking-op-web crm-web hermetica-web; do
+for CID_NAME in friopacking-planner-web friopacking-op-web crm-web hermetica-web lumini-audit-dashboard; do
   CID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=$CID_NAME" \
     | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
   curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients/$CID/default-client-scopes/$GROUPS_SCOPE_ID"
@@ -284,12 +288,13 @@ PLANNER_GRP_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$FRIO_I
 curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/users/$USER_UUID/groups/$PLANNER_GRP_ID"
 echo "    [OK] User added to /PE/Friopacking/Planner"
 
-# Assign ADMIN realm role
+# Assign ADMIN + DEVELOPER realm roles (DEVELOPER unlocks the audit dashboard)
 ADMIN_ROLE=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/roles/ADMIN")
+DEVELOPER_ROLE=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/roles/DEVELOPER")
 curl -s -f -X POST -H "$AUTH" -H "$CT" \
   "$KC_BASE/admin/realms/lumini/users/$USER_UUID/role-mappings/realm" \
-  -d "[$ADMIN_ROLE]"
-echo "    [OK] ADMIN role assigned"
+  -d "[$ADMIN_ROLE, $DEVELOPER_ROLE]"
+echo "    [OK] ADMIN + DEVELOPER roles assigned"
 
 echo ""
 echo "========================================="
