@@ -171,9 +171,13 @@ create_client "hermetica-web" "Hermetica" \
   '["https://hermetica.lumini.dev/*","http://localhost:5176/*"]' \
   '["https://hermetica.lumini.dev","http://localhost:5176"]'
 
+create_client "lumini-audit-dashboard" "Lumini Audit Dashboard" \
+  '["http://localhost:8090/*","https://audit.lumini.dev/*"]' \
+  '["http://localhost:8090","https://audit.lumini.dev"]'
+
 # ── 6. Add lumini-groups as default scope to each client ──────────────
 echo "==> Assigning lumini-groups scope to clients..."
-for CID_NAME in friopacking-planner-web friopacking-op-web crm-web hermetica-web; do
+for CID_NAME in friopacking-planner-web friopacking-op-web crm-web hermetica-web lumini-audit-dashboard; do
   CID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=$CID_NAME" \
     | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
   curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients/$CID/default-client-scopes/$GROUPS_SCOPE_ID"
@@ -188,6 +192,42 @@ HERMETICA_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?client
 for ROLE in commercial_full_access module_dispatch module_calendar module_dashboard module_commercial module_inventory module_imports module_mrp; do
   curl -s -f -X POST -H "$AUTH" -H "$CT" \
     "$KC_BASE/admin/realms/lumini/clients/$HERMETICA_UUID/roles" \
+    -d "{\"name\": \"$ROLE\"}"
+  echo "    [OK] $ROLE"
+done
+
+# ── 7b. Create crm-web client roles ─────────────────────────────────
+echo "==> Creating crm-web client roles..."
+CRM_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=crm-web" \
+  | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+
+for ROLE in crm_admin crm_user project_comercial project_arquitecto project_presupuestor; do
+  curl -s -f -X POST -H "$AUTH" -H "$CT" \
+    "$KC_BASE/admin/realms/lumini/clients/$CRM_UUID/roles" \
+    -d "{\"name\": \"$ROLE\"}"
+  echo "    [OK] $ROLE"
+done
+
+# ── 7c. Create friopacking-op-web client roles ──────────────────────
+echo "==> Creating friopacking-op-web client roles..."
+OP_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=friopacking-op-web" \
+  | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+
+for ROLE in op_admin op_user op_developer; do
+  curl -s -f -X POST -H "$AUTH" -H "$CT" \
+    "$KC_BASE/admin/realms/lumini/clients/$OP_UUID/roles" \
+    -d "{\"name\": \"$ROLE\"}"
+  echo "    [OK] $ROLE"
+done
+
+# ── 7d. Create friopacking-planner-web client roles ─────────────────
+echo "==> Creating friopacking-planner-web client roles..."
+PLANNER_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/clients?clientId=friopacking-planner-web" \
+  | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+
+for ROLE in planner_supervisor planner_admin planner_manage_projects; do
+  curl -s -f -X POST -H "$AUTH" -H "$CT" \
+    "$KC_BASE/admin/realms/lumini/clients/$PLANNER_UUID/roles" \
     -d "{\"name\": \"$ROLE\"}"
   echo "    [OK] $ROLE"
 done
@@ -207,8 +247,8 @@ curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$PE_
 FRIO_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
   | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Friopacking'][0])")
 
-# /PE/Friopacking/PlannerLima, OpCallao, CrmComercial
-for GRP in PlannerLima OpCallao CrmComercial; do
+# /PE/Friopacking projects: CRM, Operaciones, Planner
+for GRP in CRM Operaciones Planner; do
   curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$FRIO_ID/children" \
     -d "{\"name\": \"$GRP\"}"
   echo "    [OK] /PE/Friopacking/$GRP"
@@ -220,10 +260,10 @@ curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$PE_
 HERM_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$PE_ID/children" \
   | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Hermetica'][0])")
 
-# /PE/Hermetica/ComercialPeru
+# /PE/Hermetica/Hermetica (the Hermetica project under Hermetica company)
 curl -s -f -X POST -H "$AUTH" -H "$CT" "$KC_BASE/admin/realms/lumini/groups/$HERM_ID/children" \
-  -d '{"name": "ComercialPeru"}'
-echo "    [OK] /PE/Hermetica/ComercialPeru"
+  -d '{"name": "Hermetica"}'
+echo "    [OK] /PE/Hermetica/Hermetica"
 
 echo ""
 echo "==> Creating test user..."
@@ -242,18 +282,19 @@ USER_UUID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/users?email=test@lu
   | $PY -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
 echo "    User UUID: $USER_UUID"
 
-# Assign user to /PE/Friopacking/PlannerLima
+# Assign user to /PE/Friopacking/Planner
 PLANNER_GRP_ID=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/groups/$FRIO_ID/children" \
-  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='PlannerLima'][0])")
+  | $PY -c "import sys,json; print([g['id'] for g in json.load(sys.stdin) if g['name']=='Planner'][0])")
 curl -s -X PUT -H "$AUTH" "$KC_BASE/admin/realms/lumini/users/$USER_UUID/groups/$PLANNER_GRP_ID"
-echo "    [OK] User added to /PE/Friopacking/PlannerLima"
+echo "    [OK] User added to /PE/Friopacking/Planner"
 
-# Assign ADMIN realm role
+# Assign ADMIN + DEVELOPER realm roles (DEVELOPER unlocks the audit dashboard)
 ADMIN_ROLE=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/roles/ADMIN")
+DEVELOPER_ROLE=$(curl -s -H "$AUTH" "$KC_BASE/admin/realms/lumini/roles/DEVELOPER")
 curl -s -f -X POST -H "$AUTH" -H "$CT" \
   "$KC_BASE/admin/realms/lumini/users/$USER_UUID/role-mappings/realm" \
-  -d "[$ADMIN_ROLE]"
-echo "    [OK] ADMIN role assigned"
+  -d "[$ADMIN_ROLE, $DEVELOPER_ROLE]"
+echo "    [OK] ADMIN + DEVELOPER roles assigned"
 
 echo ""
 echo "========================================="
