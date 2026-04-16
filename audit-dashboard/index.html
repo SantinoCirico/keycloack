@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumini Audit Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="config.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Lumini Audit Logs</h1>
+    <div class="user-block">
+      <span id="current-user" class="user-email">conectando&hellip;</span>
+      <button type="button" id="logout-btn" class="btn btn-ghost" hidden>Cerrar sesion</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card filters-card">
+      <form id="filters-form" class="filters-grid">
+        <label>
+          Metodo
+          <select id="f-method" multiple size="4">
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </label>
+
+        <label>
+          Desde
+          <input type="datetime-local" id="f-from" />
+        </label>
+
+        <label>
+          Hasta
+          <input type="datetime-local" id="f-to" />
+        </label>
+
+        <label>
+          Path contiene
+          <input type="text" id="f-path" placeholder="/api/..." />
+        </label>
+
+        <label>
+          Email usuario contiene
+          <input type="text" id="f-user-email" placeholder="usuario@lumini.dev" />
+        </label>
+
+        <label>
+          Status HTTP
+          <input type="number" id="f-status" min="100" max="599" step="1" />
+        </label>
+
+        <fieldset class="backends-fieldset">
+          <legend>Backends</legend>
+          <div id="backend-toggles"></div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+          <button type="button" id="reset-btn" class="btn btn-ghost">Reset</button>
+          <button type="button" id="csv-btn" class="btn">Exportar CSV</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="status-row" class="status-row"></section>
+
+    <section class="card table-card">
+      <div class="table-wrapper">
+        <table id="logs-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Backend</th>
+              <th>Usuario</th>
+              <th>Metodo</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>ms</th>
+              <th>IP</th>
+              <th>Payload</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="row-count">0 registros</span>
+        <button type="button" id="load-more-btn" class="btn" disabled>Cargar mas</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="payload-dialog">
+    <form method="dialog" class="dialog-form">
+      <header><h2>Payload</h2><button class="btn btn-ghost" value="close">Cerrar</button></header>
+      <pre id="payload-content"></pre>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
